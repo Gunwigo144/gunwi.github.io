@@ -1,88 +1,231 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>학교 시험 범위 사이트 </title>
+  <meta charset="UTF-8" />
+  <title>달력</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+
+    .calendar-container {
+      display: inline-block;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #calendar {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    #calendar caption {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    #calendar th,
+    #calendar td {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #ccc;
+      vertical-align: middle;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
+
+    #calendar th {
+      background-color: #f2f2f2;
+    }
+
+    .sunday, .saturday {
+      background-color: #ffe5e5;
+    }
+
+    .has-event {
+      background-color: #d0eaff !important;
+    }
+
+    #calendar td:hover {
+      background-color: #a8d5ff;
+    }
+
+    #calendar td.today {
+      border: 2px solid #4caf50;
+    }
+
+    #calendar td.selected {
+      background-color: #4caf50;
+      color: white;
+      font-weight: bold;
+    }
+
+    .nav-buttons {
+      margin-bottom: 10px;
+    }
+
+    .nav-buttons button {
+      font-size: 16px;
+      padding: 5px 10px;
+      margin: 0 5px;
+    }
+
+    #event-display {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+      white-space: pre-line;
+    }
+
+    a.event-link {
+      display: block;
+      margin: 5px 0;
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>고1 내신 범위</h1>
-    <p> 국어 : 극과 갈래, 시.</p>
-    <br>
-    <p> 영어 : 모고 20, 21, 22, 29, 32, 33, 36, 38, 40, 41문제중 6개 나오고
-               서술형 문제는 10개 객관식 15개.</p>
-    <br>
-    <p> 수학 : 다항식 ~ 이차함수.</p>
-    <br>
-    <p> 과학 : 중간고사는 없습니다.</p>
-    <br>
-    <p> 사회 : 행복 단원, 기후 등등.</p>
-    <br> 
-    <p> 한국사 : 구석기 ~ 고려</p>
 
+  <div class="calendar-container">
+    <div class="nav-buttons">
+      <button id="prevMonth">이전 달</button>
+      <button id="nextMonth">다음 달</button>
+    </div>
 
-    </p>
+    <table id="calendar">
+      <caption></caption>
+      <thead>
+        <tr>
+          <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-    <h2>내신에 좋은 문제집 링크</h2>
-    <a href="https://www.yes24.com/Product/Goods/128221087" target="_blank">마플 시너지 공통수학1</a>
-    <br>
-    <a href="https://www.yes24.com/Product/Goods/129587741" target="_blank">오투 공통과학1</a>
-    <br>
-    <a href="https://product.kyobobook.co.kr/detail/S000214724876" target="_blank">자이스토리 한국사 고1</a>
-    
+    <div id="event-display">선택된 날짜: 없음</div>
+  </div>
 
-    <h2></h2>
-    <img src="https://image.yes24.com/goods/128221087/XL" alt="플레이스홀더 이미지" width="125">
-    <img src="https://contents.kyobobook.co.kr/sih/fit-in/400x0/pdt/9791169409421.jpg" alt="플레이스홀더 이미지" width="125">
-    <img src="https://image.yes24.com/goods/137501258/XL" alt="플레이스홀더 이미지" width="125">
+  <script>
+    let currentYear, currentMonth;
+    const today = new Date();
+    const caption = document.querySelector("#calendar caption");
+    const tbody = document.querySelector("#calendar tbody");
+    const eventDisplay = document.getElementById("event-display");
+    let selectedCell = null;
 
-    <p>☝마플 시너지&nbsp;&nbsp;&nbsp;☝오투 공통과학1&nbsp;&nbsp;☝자이스토리 한국사</p>
+    const scheduleMap = {
+      "05-23": ["수학 수행평가(구술&마인드맵)", "역사일기 수행평가"],
+      "05-26": ["수학 수행평가(구술&마인드맵)", "역사일기 수행평가"],
+      "05-27": ["수학 수행평가(구술&마인드맵)", "역사일기 수행평가"],
+      "05-19": ["역사일기 수행평가"],
+      "05-20": ["역사일기 수행평가"],
+      "05-21": ["역사일기 수행평가"],
+      "05-22": ["역사일기 수행평가"],
+      "06-02": ["수학 수행평가(독서)"],
+      "06-03": ["수학 수행평가(독서)"],
+      "06-04": ["6월 모의고사"],
+      "06-05": ["수학 수행평가(독서)"],
+      "06-24": ["기말고사"],
+      "06-25": ["기말고사"],
+      "06-26": ["기말고사"],
+      "06-27": ["기말고사"],
+    };
 
+    function generateCalendar(year, month) {
+      currentYear = year;
+      currentMonth = month;
+      caption.textContent = `${year}년 ${month + 1}월`;
+      tbody.innerHTML = "";
 
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
 
-    <h2>사소한 팁</h2>
-    <ul>
-        <li>수학은 개념부터 알고 넘어가는게 좋음 모르면 개념유형 쓰기</li>
-        <li>영어는 모고 문제 알려준거 외우고 본문 암기 문법도 알아야됨</li>
-        <li>응</li>
+      let row = document.createElement("tr");
 
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <p> 테스트용 웹사이트 </p>
+      for (let i = 0; i < firstDay; i++) {
+        row.appendChild(document.createElement("td"));
+      }
 
-    <h2> 만든사람</h2>
-    <ul>
-        <li>성주현 멍청이</li>
-    </ul>
+      for (let date = 1; date <= lastDate; date++) {
+        const cell = document.createElement("td");
+        cell.textContent = date;
+
+        const dayOfWeek = (firstDay + date - 1) % 7;
+        if (dayOfWeek === 0) cell.classList.add("sunday");
+        if (dayOfWeek === 6) cell.classList.add("saturday");
+
+        const key = `${(month + 1).toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
+        if (scheduleMap[key]) {
+          cell.classList.add("has-event");
+        }
+
+        if (
+          year === today.getFullYear() &&
+          month === today.getMonth() &&
+          date === today.getDate()
+        ) {
+          cell.classList.add("today");
+        }
+
+        cell.addEventListener("click", () => {
+          if (selectedCell) selectedCell.classList.remove("selected");
+          cell.classList.add("selected");
+          selectedCell = cell;
+
+          const events = scheduleMap[key];
+          if (events) {
+            eventDisplay.innerHTML = `${year}년 ${month + 1}월 ${date}일 일정:\n` + events.map(event => {
+              let url = '';
+              if (event.includes("수학")) url = 'https://mymompretty.github.io/test.github.io/';
+              if (event.includes("역사")) url = 'https://mymompretty.github.io/home.github.io/';
+              if (event.includes("모의고사")) url = 'https://mymompretty.github.io/kimch.github.io/';
+              if (url) {
+                return `<a class="event-link" href="${url}" target="_blank">${event}</a>`;
+              } else {
+                return `<div>${event}</div>`;
+              }
+            }).join('');
+          } else {
+            eventDisplay.textContent = `${year}년 ${month + 1}월 ${date}일 - 일정 없음`;
+          }
+        });
+
+        row.appendChild(cell);
+
+        if ((firstDay + date) % 7 === 0 || date === lastDate) {
+          tbody.appendChild(row);
+          row = document.createElement("tr");
+        }
+      }
+    }
+
+    document.getElementById("prevMonth").addEventListener("click", () => {
+      if (currentMonth === 0) {
+        generateCalendar(currentYear - 1, 11);
+      } else {
+        generateCalendar(currentYear, currentMonth - 1);
+      }
+    });
+
+    document.getElementById("nextMonth").addEventListener("click", () => {
+      if (currentMonth === 11) {
+        generateCalendar(currentYear + 1, 0);
+      } else {
+        generateCalendar(currentYear, currentMonth + 1);
+      }
+    });
+
+    generateCalendar(today.getFullYear(), today.getMonth());
+  </script>
+
 </body>
 </html>
