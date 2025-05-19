@@ -185,9 +185,9 @@
           if (events) {
             eventDisplay.innerHTML = `${year}년 ${month + 1}월 ${date}일 일정:\n` + events.map(event => {
               let url = '';
-              if (event.includes("수학")) url = 'https://mymompretty.github.io/test.github.io/';
-              if (event.includes("역사")) url = 'https://mymompretty.github.io/home.github.io/';
-              if (event.includes("모의고사")) url = 'https://mymompretty.github.io/kimch.github.io/';
+              if (event.includes("수학")) url = 'https://gunwigo144.github.io/math.github.io/';
+              if (event.includes("역사")) url = 'https://gunwigo144.github.io/history.github.io/';
+              if (event.includes("모의고사")) url = 'https://gunwigo144.github.io/test.github.io/';
               if (url) {
                 return `<a class="event-link" href="${url}" target="_blank">${event}</a>`;
               } else {
